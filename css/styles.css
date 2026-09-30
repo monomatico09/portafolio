@@ -126,21 +126,21 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 900px 700px at 8%  12%,  rgba(97,  97, 255, 0.08) 0%, transparent 65%),
-    radial-gradient(ellipse 700px 500px at 92% 28%,  rgba(58, 201, 255, 0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 800px 600px at 12% 72%,  rgba(148, 80, 253, 0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 600px 450px at 88% 88%,  rgba(97,  97, 255, 0.06) 0%, transparent 58%),
-    radial-gradient(ellipse 500px 400px at 50% 50%,  rgba(97,  97, 255, 0.03) 0%, transparent 70%);
+    radial-gradient(ellipse 700px 500px at 8%  12%,  rgba(97,  97, 255, 0.28) 0%, transparent 60%),
+    radial-gradient(ellipse 550px 400px at 92% 28%,  rgba(58, 201, 255, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 650px 500px at 12% 72%,  rgba(148, 80, 253, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 500px 380px at 88% 85%,  rgba(97,  97, 255, 0.20) 0%, transparent 55%),
+    radial-gradient(ellipse 800px 600px at 50% 45%,  rgba(97,  97, 255, 0.08) 0%, transparent 65%);
 }
 
 @media (prefers-color-scheme: dark) {
   body::before {
     background:
-      radial-gradient(ellipse 900px 700px at 8%  12%,  rgba(129, 129, 255, 0.15) 0%, transparent 65%),
-      radial-gradient(ellipse 700px 500px at 92% 28%,  rgba(58,  201, 255, 0.10) 0%, transparent 60%),
-      radial-gradient(ellipse 800px 600px at 12% 72%,  rgba(148,  80, 253, 0.12) 0%, transparent 65%),
-      radial-gradient(ellipse 600px 450px at 88% 88%,  rgba(129, 129, 255, 0.10) 0%, transparent 58%),
-      radial-gradient(ellipse 500px 400px at 50% 50%,  rgba(129, 129, 255, 0.05) 0%, transparent 70%);
+      radial-gradient(ellipse 700px 500px at 8%  12%,  rgba(129, 129, 255, 0.32) 0%, transparent 60%),
+      radial-gradient(ellipse 550px 400px at 92% 28%,  rgba(58,  201, 255, 0.22) 0%, transparent 55%),
+      radial-gradient(ellipse 650px 500px at 12% 72%,  rgba(148,  80, 253, 0.28) 0%, transparent 60%),
+      radial-gradient(ellipse 500px 380px at 88% 85%,  rgba(129, 129, 255, 0.24) 0%, transparent 55%),
+      radial-gradient(ellipse 800px 600px at 50% 45%,  rgba(129, 129, 255, 0.12) 0%, transparent 65%);
   }
 }
 

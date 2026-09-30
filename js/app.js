@@ -1,12 +1,11 @@
 (function () {
   'use strict';
 
-  /* ── Constantes ───────────────────────────────────────── */
-  var IFRAME_W = 1280;          // ancho "natural" del iframe
-  var IFRAME_H = 800;           // alto  "natural" del iframe
-  var LOAD_TIMEOUT = 10000;     // ms antes de mostrar "no disponible"
+  var IFRAME_W = 1280;
+  var IFRAME_H = 800;
+  var LOAD_TIMEOUT = 10000;
 
-  /* ── Mapa servicio → clase CSS del badge ─────────────── */
+  /* ── Mapas de servicio ─────────────────────────────── */
   var BADGE_MAP = {
     'google apps script': 'badge--apps-script',
     'apps script':        'badge--apps-script',
@@ -14,8 +13,6 @@
     'netlify':            'badge--netlify',
     'github pages':       'badge--github-pages',
   };
-
-  /* ── Mapa servicio → slug para data-service (borde superior) ── */
   var SLUG_MAP = {
     'google apps script': 'apps-script',
     'apps script':        'apps-script',
@@ -24,66 +21,150 @@
     'github pages':       'github-pages',
   };
 
-  function badgeClass(service) {
-    var key = (service || '').toLowerCase().trim();
-    return BADGE_MAP[key] || 'badge--other';
+  function badgeClass(s) { return BADGE_MAP[(s||'').toLowerCase().trim()] || 'badge--other'; }
+  function serviceSlug(s){ return SLUG_MAP[(s||'').toLowerCase().trim()]  || 'other'; }
+
+  /* ══════════════════════════════════════════════════════
+     LIGHTBOX
+     ══════════════════════════════════════════════════════ */
+  var lightbox      = document.getElementById('lightbox');
+  var lbBody        = lightbox  ? lightbox.querySelector('.lightbox-body')    : null;
+  var lbClose       = lightbox  ? lightbox.querySelector('.lightbox-close')   : null;
+  var lbBackdrop    = lightbox  ? lightbox.querySelector('.lightbox-backdrop') : null;
+  var lbLastFocus   = null;
+
+  function openLightbox(project) {
+    if (!lightbox || !lbBody) return;
+    lbLastFocus = document.activeElement;
+    lbBody.innerHTML = '';
+
+    if (project.screenshot) {
+      /* Mostrar captura ampliada */
+      var img = document.createElement('img');
+      img.src = project.screenshot;
+      img.alt = 'Vista previa de ' + (project.title || 'proyecto');
+      lbBody.appendChild(img);
+
+    } else {
+      /* Proyecto privado / sin captura */
+      var wrap = document.createElement('div');
+      wrap.className = 'lightbox-private';
+
+      var icon = document.createElement('div');
+      icon.className = 'lightbox-private-icon';
+      icon.textContent = '🔒';
+
+      var title = document.createElement('p');
+      title.className = 'lightbox-private-title';
+      title.textContent = 'Proyecto de uso interno';
+
+      var text = document.createElement('p');
+      text.className = 'lightbox-private-text';
+      text.textContent = 'Esta herramienta está en producción dentro de una institución y no es de acceso público. Escríbeme si quieres ver una demostración.';
+
+      wrap.appendChild(icon);
+      wrap.appendChild(title);
+      wrap.appendChild(text);
+      lbBody.appendChild(wrap);
+    }
+
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
+    if (lbClose) lbClose.focus();
   }
 
-  function serviceSlug(service) {
-    var key = (service || '').toLowerCase().trim();
-    return SLUG_MAP[key] || 'other';
+  function closeLightbox() {
+    if (!lightbox) return;
+    lightbox.hidden = true;
+    document.body.style.overflow = '';
+    lbBody.innerHTML = '';
+    if (lbLastFocus) lbLastFocus.focus();
   }
 
-  /* ── Construcción de una tarjeta ─────────────────────── */
+  if (lbClose)    lbClose.addEventListener('click', closeLightbox);
+  if (lbBackdrop) lbBackdrop.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lightbox && !lightbox.hidden) closeLightbox();
+  });
+
+  /* ══════════════════════════════════════════════════════
+     CONSTRUCCIÓN DE TARJETA
+     ══════════════════════════════════════════════════════ */
   function buildCard(project) {
-    /* Contenedor principal */
+    var isPrivate = !!project.private;
+
     var card = document.createElement('article');
     card.className = 'project-card';
     card.setAttribute('role', 'listitem');
-    if (project.service) {
-      card.setAttribute('data-service', serviceSlug(project.service));
-    }
+    if (project.service) card.setAttribute('data-service', serviceSlug(project.service));
 
-    /* ── Área de vista previa ── */
+    /* ── Área de preview ── */
     var preview = document.createElement('div');
     preview.className = 'card-preview';
+    preview.setAttribute('role', 'button');
+    preview.setAttribute('tabindex', '0');
+    preview.setAttribute('aria-label', 'Ver vista previa de ' + (project.title || 'proyecto'));
+
+    /* Abrir lightbox al clic o Enter/Space */
+    function handlePreviewClick() { openLightbox(project); }
+    preview.addEventListener('click', handlePreviewClick);
+    preview.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePreviewClick(); }
+    });
 
     /* Skeleton */
     var skeleton = document.createElement('div');
     skeleton.className = 'card-skeleton';
     preview.appendChild(skeleton);
 
-    /* Mensaje de no disponible (oculto por defecto) */
-    var unavailable = document.createElement('div');
-    unavailable.className = 'preview-unavailable';
-    unavailable.textContent = 'Vista previa no disponible';
-    unavailable.hidden = true;
-    preview.appendChild(unavailable);
+    function hideSkeleton() { skeleton.classList.add('is-hidden'); }
 
-    function hideSkeleton() {
-      skeleton.classList.add('is-hidden');
-    }
-    function showUnavailable() {
+    /* ── Contenido de la preview ── */
+    if (isPrivate) {
+      /* Estado bloqueado visual */
       hideSkeleton();
-      unavailable.hidden = false;
-    }
+      var lockWrap = document.createElement('div');
+      lockWrap.className = 'preview-private';
 
-    if (project.screenshot) {
-      /* ── Imagen estática ── */
+      var lockIcon = document.createElement('div');
+      lockIcon.className = 'preview-private-icon';
+      lockIcon.textContent = '🔒';
+      lockIcon.setAttribute('aria-hidden', 'true');
+
+      var lockLabel = document.createElement('p');
+      lockLabel.className = 'preview-private-label';
+      lockLabel.textContent = project.screenshot ? project.title || 'Proyecto privado' : 'Uso interno';
+
+      var lockHint = document.createElement('p');
+      lockHint.className = 'preview-private-hint';
+      lockHint.textContent = 'Click para ampliar';
+
+      lockWrap.appendChild(lockIcon);
+      lockWrap.appendChild(lockLabel);
+      lockWrap.appendChild(lockHint);
+      preview.appendChild(lockWrap);
+
+      /* Si hay screenshot, cargarlo detrás del lock para el lightbox (sin mostrarlo aquí) */
+
+    } else if (project.screenshot) {
       var img = document.createElement('img');
       img.className = 'card-screenshot';
-      img.alt = 'Captura de pantalla de ' + (project.title || 'proyecto');
+      img.alt = 'Captura de ' + (project.title || 'proyecto');
       img.loading = 'lazy';
       img.onload = hideSkeleton;
       img.onerror = function () {
         img.remove();
-        showUnavailable();
+        hideSkeleton();
+        var unav = document.createElement('div');
+        unav.className = 'preview-unavailable';
+        unav.textContent = 'Vista previa no disponible';
+        preview.appendChild(unav);
       };
       img.src = project.screenshot;
       preview.appendChild(img);
 
     } else if (project.url) {
-      /* ── iframe escalado ── */
       var wrapper = document.createElement('div');
       wrapper.className = 'card-iframe-wrapper';
 
@@ -94,17 +175,20 @@
       iframe.setAttribute('tabindex', '-1');
       iframe.setAttribute('aria-hidden', 'true');
       iframe.title = project.title || 'Vista previa';
-      iframe.style.width = IFRAME_W + 'px';
+      iframe.style.width  = IFRAME_W + 'px';
       iframe.style.height = IFRAME_H + 'px';
       iframe.style.pointerEvents = 'none';
       iframe.style.transformOrigin = 'top left';
 
-      /* Timeout: si no carga en LOAD_TIMEOUT ms, mostrar aviso */
       var loaded = false;
       var timer = setTimeout(function () {
         if (!loaded) {
-          showUnavailable();
+          hideSkeleton();
           wrapper.style.display = 'none';
+          var unav = document.createElement('div');
+          unav.className = 'preview-unavailable';
+          unav.textContent = 'Vista previa no disponible';
+          preview.appendChild(unav);
         }
       }, LOAD_TIMEOUT);
 
@@ -114,18 +198,13 @@
         hideSkeleton();
       };
 
-      /* ResizeObserver: recalcula scale cuando cambia el ancho de la tarjeta */
       if (typeof ResizeObserver !== 'undefined') {
         var ro = new ResizeObserver(function (entries) {
-          for (var i = 0; i < entries.length; i++) {
-            var w = entries[i].contentRect.width;
-            var scale = w / IFRAME_W;
-            iframe.style.transform = 'scale(' + scale + ')';
-            /* Ajustar alto del contenedor para mantener proporción */
-            var h = IFRAME_H * scale;
-            preview.style.height = h + 'px';
-            preview.style.aspectRatio = 'unset';
-          }
+          var w = entries[0].contentRect.width;
+          var scale = w / IFRAME_W;
+          iframe.style.transform = 'scale(' + scale + ')';
+          preview.style.height = (IFRAME_H * scale) + 'px';
+          preview.style.aspectRatio = 'unset';
         });
         ro.observe(preview);
       }
@@ -134,8 +213,11 @@
       preview.appendChild(wrapper);
 
     } else {
-      /* Sin URL ni screenshot */
-      showUnavailable();
+      hideSkeleton();
+      var unav2 = document.createElement('div');
+      unav2.className = 'preview-unavailable';
+      unav2.textContent = 'Vista previa no disponible';
+      preview.appendChild(unav2);
     }
 
     card.appendChild(preview);
@@ -144,11 +226,13 @@
     var body = document.createElement('div');
     body.className = 'card-body';
 
-    var titleEl = document.createElement('h2');
+    /* Título */
+    var titleEl = document.createElement('h3');
     titleEl.className = 'card-title';
     titleEl.textContent = project.title || 'Sin título';
     body.appendChild(titleEl);
 
+    /* Descripción */
     if (project.description) {
       var descEl = document.createElement('p');
       descEl.className = 'card-description';
@@ -156,7 +240,25 @@
       body.appendChild(descEl);
     }
 
-    /* Footer: badge + botón */
+    /* Callout "qué problema soluciona" */
+    if (project.problem) {
+      var problemBox = document.createElement('div');
+      problemBox.className = 'card-problem';
+
+      var problemLabel = document.createElement('p');
+      problemLabel.className = 'card-problem-label';
+      problemLabel.textContent = 'Qué soluciona';
+
+      var problemText = document.createElement('p');
+      problemText.className = 'card-problem-text';
+      problemText.textContent = project.problem;
+
+      problemBox.appendChild(problemLabel);
+      problemBox.appendChild(problemText);
+      body.appendChild(problemBox);
+    }
+
+    /* Footer: badge + botón (botón solo si no es privado y tiene URL) */
     var footer = document.createElement('div');
     footer.className = 'card-footer';
 
@@ -167,20 +269,17 @@
       footer.appendChild(badge);
     }
 
-    if (project.url) {
+    if (project.url && !isPrivate) {
       var btn = document.createElement('a');
       btn.className = 'btn-open';
       btn.href = project.url;
       btn.target = '_blank';
       btn.rel = 'noopener noreferrer';
       btn.textContent = 'Abrir';
-
       var arrow = document.createElement('span');
-      arrow.className = 'btn-arrow';
       arrow.setAttribute('aria-hidden', 'true');
       arrow.textContent = '↗';
       btn.appendChild(arrow);
-
       footer.appendChild(btn);
     }
 
@@ -190,16 +289,16 @@
     return card;
   }
 
-  /* ── Inicialización ──────────────────────────────────── */
+  /* ══════════════════════════════════════════════════════
+     INIT
+     ══════════════════════════════════════════════════════ */
   function init() {
-    /* Año en el footer */
     var yearEl = document.getElementById('footer-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     var grid       = document.getElementById('projects-grid');
     var emptyState = document.getElementById('empty-state');
-
-    var projects = window.PROJECTS;
+    var projects   = window.PROJECTS;
 
     if (!Array.isArray(projects) || projects.length === 0) {
       if (grid)       grid.hidden = true;

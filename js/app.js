@@ -48,8 +48,17 @@
 
     if (project.screenshot) {
       media.classList.add('slide-media--clickable');
+      media.setAttribute('role', 'button');
+      media.setAttribute('tabindex', '0');
+      media.setAttribute('aria-label', 'Ampliar captura: ' + (project.title || 'proyecto'));
       media.addEventListener('click', function () {
         openLightbox(project.screenshot, project.title || '');
+      });
+      media.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openLightbox(project.screenshot, project.title || '');
+        }
       });
       var img = document.createElement('img');
       img.className = 'slide-screenshot';
@@ -166,9 +175,24 @@
     var timer   = null;
     var progTmr = null;
 
+    /* Autoplay solo si hay varios slides y el usuario no pidió reducir movimiento */
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var canAuto  = total > 1 && !reduceMotion;
+    var hovered  = false;
+    var focused  = false;
+    if (!canAuto && progBar) progBar.parentNode.hidden = true;
+
     /* Construir slides */
+    var slides = [];
     var frag = document.createDocumentFragment();
-    for (var i = 0; i < total; i++) frag.appendChild(buildSlide(projects[i]));
+    for (var i = 0; i < total; i++) {
+      var s = buildSlide(projects[i]);
+      s.setAttribute('role', 'group');
+      s.setAttribute('aria-roledescription', 'proyecto');
+      s.setAttribute('aria-label', (i + 1) + ' de ' + total);
+      slides.push(s);
+      frag.appendChild(s);
+    }
     track.appendChild(frag);
 
     /* Dots */
@@ -178,7 +202,7 @@
         var dot = document.createElement('button');
         dot.className = 'carousel-dot';
         dot.setAttribute('aria-label', 'Ir al proyecto ' + (j + 1));
-        (function (idx) { dot.addEventListener('click', function () { stopAuto(); goTo(idx); startAuto(); }); })(j);
+        (function (idx) { dot.addEventListener('click', function () { navigate(idx); }); })(j);
         dots.push(dot);
         dotsEl.appendChild(dot);
       }
@@ -189,8 +213,16 @@
     function goTo(idx) {
       current = ((idx % total) + total) % total;
       track.style.transform = 'translateX(-' + current * 100 + '%)';
-      dots.forEach(function (d, i) { d.classList.toggle('is-active', i === current); });
-      resetProgress();
+      dots.forEach(function (d, i) {
+        d.classList.toggle('is-active', i === current);
+        if (i === current) d.setAttribute('aria-current', 'true');
+        else d.removeAttribute('aria-current');
+      });
+      /* Los slides ocultos no deben recibir foco ni leerse */
+      slides.forEach(function (sl, i) {
+        if (i === current) { sl.removeAttribute('inert'); sl.removeAttribute('aria-hidden'); }
+        else { sl.setAttribute('inert', ''); sl.setAttribute('aria-hidden', 'true'); }
+      });
     }
 
     function resetProgress() {
@@ -206,9 +238,9 @@
     }
 
     function startAuto() {
-      if (total <= 1) return;
+      if (!canAuto || hovered || focused) return;
       stopAuto();
-      timer = setInterval(function () { goTo(current + 1); }, AUTO_DELAY);
+      timer = setInterval(function () { goTo(current + 1); resetProgress(); }, AUTO_DELAY);
       resetProgress();
     }
 
@@ -218,12 +250,34 @@
       if (progBar) { progBar.style.transition = 'none'; progBar.style.width = '0%'; }
     }
 
-    prevBtn.addEventListener('click', function () { stopAuto(); goTo(current - 1); startAuto(); });
-    nextBtn.addEventListener('click', function () { stopAuto(); goTo(current + 1); startAuto(); });
+    /* Navegación manual: reinicia el ciclo solo si no está en pausa */
+    function navigate(idx) { stopAuto(); goTo(idx); startAuto(); }
 
-    /* Pausar al hover */
-    wrap.addEventListener('mouseenter', stopAuto);
-    wrap.addEventListener('mouseleave', startAuto);
+    prevBtn.addEventListener('click', function () { navigate(current - 1); });
+    nextBtn.addEventListener('click', function () { navigate(current + 1); });
+
+    /* Pausar al hover (solo mouse; en táctil no hay "mouseleave") */
+    wrap.addEventListener('pointerenter', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      hovered = true; stopAuto();
+    });
+    wrap.addEventListener('pointerleave', function (e) {
+      if (e.pointerType !== 'mouse') return;
+      hovered = false; startAuto();
+    });
+
+    /* Pausar mientras el foco del teclado esté dentro del carrusel */
+    wrap.addEventListener('focusin', function (e) {
+      /* Un clic con mouse también da foco al botón; solo pausamos con foco de teclado */
+      var visible = true;
+      try { visible = e.target.matches(':focus-visible'); } catch (err) {}
+      if (!visible) return;
+      focused = true; stopAuto();
+    });
+    wrap.addEventListener('focusout', function (e) {
+      if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
+      focused = false; startAuto();
+    });
 
     /* Teclas (solo si el lightbox está cerrado y no se está escribiendo) */
     document.addEventListener('keydown', function (e) {
@@ -231,8 +285,8 @@
       if (lb && !lb.hidden) return;
       var t = e.target;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
-      if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
-      if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
+      if (e.key === 'ArrowLeft')  navigate(current - 1);
+      if (e.key === 'ArrowRight') navigate(current + 1);
     });
 
     /* Touch swipe */
@@ -243,9 +297,7 @@
       var dx = e.changedTouches[0].clientX - touchX;
       touchX = null;
       if (Math.abs(dx) < 40) return;
-      stopAuto();
-      goTo(dx < 0 ? current + 1 : current - 1);
-      startAuto();
+      navigate(dx < 0 ? current + 1 : current - 1);
     }, { passive: true });
 
     goTo(0);
@@ -311,20 +363,38 @@ var openLightbox = (function () {
     caption.textContent = slide.title || '';
     prevBtn.hidden = current === 0;
     nextBtn.hidden = current === slides.length - 1;
+    /* Si el botón con foco se ocultó (primer/último slide), no perder el foco */
+    if (document.activeElement && document.activeElement.hidden) closeBtn.focus();
   }
+
+  var returnFocus = null;
 
   function open(screenshot, title) {
     slides = getSlides();
     var idx = slides.findIndex(function (p) { return p.screenshot === screenshot; });
+    returnFocus = document.activeElement;
     lb.hidden = false;
     document.body.style.overflow = 'hidden';
     show(idx >= 0 ? idx : 0);
+    closeBtn.focus();
   }
 
   function close() {
     lb.hidden = true;
     document.body.style.overflow = '';
     img.src = '';
+    if (returnFocus && returnFocus.focus) returnFocus.focus();
+    returnFocus = null;
+  }
+
+  /* Mantiene el Tab dentro del lightbox mientras está abierto */
+  function trapFocus(e) {
+    var items = [closeBtn, prevBtn, nextBtn].filter(function (b) { return !b.hidden; });
+    var first = items[0];
+    var last  = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    else if (items.indexOf(document.activeElement) === -1) { e.preventDefault(); first.focus(); }
   }
 
   if (lb) {
@@ -334,6 +404,9 @@ var openLightbox = (function () {
     nextBtn.addEventListener('click', function () { show(current + 1); });
     document.addEventListener('keydown', function (e) {
       if (lb.hidden) return;
+      /* El lightbox tiene prioridad: que Esc no cierre también el chat */
+      e.stopImmediatePropagation();
+      if (e.key === 'Tab')        trapFocus(e);
       if (e.key === 'Escape')     close();
       if (e.key === 'ArrowLeft')  show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);

@@ -503,3 +503,69 @@ var openLightbox = (function () {
   function showSuccess()  { if (form) form.hidden = true; if (successEl) successEl.hidden = false; }
 
 })();
+
+/* ══════════════════════════════════════════════════════════
+   EFECTOS DE PÁGINA: franjas, navegación y aparición al scroll
+   ══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  document.documentElement.classList.add('js');
+
+  /* Franjas de herramientas: el track debe tener dos mitades idénticas y cada mitad
+     debe ser más ancha que la pantalla, para que el desplazamiento no deje huecos */
+  var tracks = document.querySelectorAll('.marquee-track');
+  Array.prototype.forEach.call(tracks, function (track) {
+    var items = Array.prototype.slice.call(track.children);
+    var setWidth = track.scrollWidth || 1;
+    var reps = Math.max(1, Math.ceil(Math.max(window.screen.width || 0, 1920) / setWidth));
+    var copies = reps * 2 - 1; /* el set original cuenta como la primera copia */
+    for (var r = 0; r < copies; r++) {
+      items.forEach(function (li) {
+        var c = li.cloneNode(true);
+        c.setAttribute('aria-hidden', 'true');
+        c.setAttribute('data-clone', '');
+        track.appendChild(c);
+      });
+    }
+  });
+
+  /* Borde inferior de la navegación al hacer scroll */
+  var nav = document.querySelector('.site-nav');
+  if (nav) {
+    var onScroll = function () { nav.classList.toggle('is-scrolled', window.scrollY > 8); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* Aparición al hacer scroll */
+  var els = document.querySelectorAll('[data-reveal]');
+  if (!('IntersectionObserver' in window)) {
+    Array.prototype.forEach.call(els, function (el) { el.removeAttribute('data-reveal'); });
+    return;
+  }
+
+  /* Escalonar los elementos que comparten contenedor (ej. los módulos) */
+  Array.prototype.forEach.call(els, function (el) {
+    var siblings = Array.prototype.filter.call(el.parentNode.children, function (s) { return s.hasAttribute('data-reveal'); });
+    var idx = siblings.indexOf(el);
+    if (idx > 0) el.style.setProperty('--rd', (idx % 3) * 90 + 'ms');
+  });
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      var el = entry.target;
+      el.classList.add('is-visible');
+      io.unobserve(el);
+      /* Al terminar, se quitan los estilos de aparición para no interferir con los hover */
+      setTimeout(function () {
+        el.removeAttribute('data-reveal');
+        el.classList.remove('is-visible');
+        el.style.removeProperty('--rd');
+      }, 1000);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+  Array.prototype.forEach.call(els, function (el) { io.observe(el); });
+})();

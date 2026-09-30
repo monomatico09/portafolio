@@ -569,21 +569,28 @@ strong { font-weight: 600; color: var(--tx-1); }
   .project-card:hover .card-iframe-wrapper { transform: scale(1.06); }
 }
 
+/* Preview con captura — aspect-ratio automático según la imagen */
+.card-preview--screenshot {
+  aspect-ratio: unset;
+  height: auto;
+  max-height: 480px;
+}
+
 /* Screenshot */
 .card-screenshot {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: 480px;
   object-fit: cover;
   object-position: top center;
-  display: block;
   z-index: 1;
   transform-origin: top center;
-  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 @media (prefers-reduced-motion: no-preference) {
-  .project-card:hover .card-screenshot { transform: scale(1.06); }
+  .project-card:hover .card-screenshot { transform: scale(1.04); }
 }
 
 /* ── Cuerpo ── */

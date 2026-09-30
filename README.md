@@ -1,6 +1,6 @@
 # Cinetia — Portafolio web
 
-Landing page de servicios para mostrar proyectos web con vista previa, chat de contacto y modo oscuro automático.  
+Landing page de servicios para mostrar proyectos web con carrusel automático, lightbox de imágenes, chat de contacto y modo oscuro automático.  
 Publicada en **GitHub Pages** sin frameworks ni herramientas de compilación.
 
 🌐 **URL pública:** https://monomatico09.github.io/portafolio/
@@ -11,9 +11,9 @@ Publicada en **GitHub Pages** sin frameworks ni herramientas de compilación.
 
 ```
 portafolio/
-├── index.html        ← Página principal (hero, proyectos, contacto, chat)
+├── index.html        ← Página principal (hero, carrusel, contacto, chat, lightbox)
 ├── css/styles.css    ← Estilos, tokens de diseño, gradiente aurora y modo oscuro
-├── js/app.js         ← Tarjetas con zoom hover y chat flotante
+├── js/app.js         ← Carrusel automático, lightbox y chat flotante
 ├── projects.js       ← Lista de proyectos ← ÚNICO ARCHIVO QUE EDITAS
 ├── Logos/            ← Logos y favicons de Cinetia
 │   ├── favicon.svg
@@ -22,7 +22,7 @@ portafolio/
 │   ├── cinetia-monograma-violeta.svg   ← usado en hero (modo claro)
 │   ├── cinetia-monograma-blanco.svg    ← usado en hero (modo oscuro) y chat
 │   └── ...
-├── screenshots/      ← Capturas de pantalla opcionales
+├── screenshots/      ← Capturas de pantalla de los proyectos
 │   └── .gitkeep
 ├── README.md
 └── .nojekyll         ← Necesario para GitHub Pages
@@ -58,19 +58,19 @@ window.PROJECTS = [
 | `description` | string | Qué hace la app (1-2 oraciones) |
 | `problem` | string | Qué problema soluciona — aparece en callout morado (opcional) |
 | `url` | string | URL pública del proyecto |
-| `service` | string | Plataforma — define el color del badge y el acento superior de la tarjeta |
+| `service` | string | Plataforma — define el color del badge |
 | `screenshot` | string | Ruta a imagen en `/screenshots/`, o `""` para usar iframe |
-| `private` | boolean | `true` oculta el botón Abrir; el iframe sigue visible pero sin enlace |
+| `private` | boolean | `true` oculta el botón Abrir |
 
 **Valores válidos para `service`:**
 
-| Valor | Badge | Acento superior de la tarjeta |
-|---|---|---|
-| `Google Apps Script` | Lavanda | Violeta |
-| `Vercel` | Aqua | Cian |
-| `Netlify` | Menta | Verde |
-| `GitHub Pages` | Periwinkle | Azul |
-| Cualquier otro | Gris | Sin acento |
+| Valor | Badge |
+|---|---|
+| `Google Apps Script` | Lavanda |
+| `Vercel` | Aqua |
+| `Netlify` | Menta |
+| `GitHub Pages` | Periwinkle |
+| Cualquier otro (ej. `n8n + Python`) | Gris |
 
 ### 2. Proyectos privados (`private: true`)
 
@@ -81,15 +81,17 @@ Cuando el proyecto es de uso interno y no quieres exponer un enlace:
   title:      "Sistema interno",
   private:    true,
   url:        "",        // puede ir vacío
-  screenshot: ""         // o con una captura para mostrarla en la tarjeta
+  screenshot: "screenshots/mi-app.png"
 }
 ```
 
-La tarjeta muestra el iframe (o captura) con zoom al hacer hover, pero **sin botón "Abrir"** ni URL visible como enlace.
+La tarjeta muestra la captura en el carrusel pero **sin botón "Abrir"** ni URL visible.
 
-### 3. Captura de pantalla (opcional)
+### 3. Captura de pantalla
 
-Usa una imagen estática cuando el iframe no está disponible (login requerido, CSP bloqueante, etc.):
+La captura se muestra en el slide del carrusel y se puede ver a pantalla completa haciendo clic (lightbox).
+
+**Tamaño recomendado:** `1280 × 800 px` (proporción 16:10, igual al contenedor).
 
 1. Guarda la captura en `screenshots/` (ej. `screenshots/mi-app.png`).
 2. Pon la ruta en el campo `screenshot`:
@@ -98,7 +100,7 @@ Usa una imagen estática cuando el iframe no está disponible (login requerido, 
 screenshot: "screenshots/mi-app.png"
 ```
 
-La imagen hace zoom suave al hacer hover sobre la tarjeta.
+Usa una captura cuando el iframe no está disponible (login requerido, CSP bloqueante, etc.).
 
 ### 4. Subir los cambios
 
@@ -109,6 +111,21 @@ git push
 ```
 
 GitHub Pages publica automáticamente en unos segundos.
+
+---
+
+## Carrusel de proyectos
+
+El carrusel avanza automáticamente cada **5 segundos** y admite:
+
+- Flechas ← → para navegar manualmente
+- Dots de navegación en la parte inferior
+- Barra de progreso animada
+- Pausa automática al pasar el mouse
+- Swipe táctil en móvil
+- Teclas ← → del teclado
+
+Al hacer clic sobre la captura de pantalla de un slide se abre el **lightbox** con la imagen a pantalla completa. Se cierra con Esc o clic fuera.
 
 ---
 
@@ -134,19 +151,7 @@ El widget flotante (esquina inferior derecha) envía mensajes al correo usando *
 | Logo (modo oscuro y chat) | `Logos/cinetia-monograma-blanco.svg` |
 | Favicon | `Logos/favicon.svg` y `Logos/favicon-32.png` |
 | Proyectos | `projects.js` |
-
----
-
-## ¿Cuándo usar captura en lugar de iframe?
-
-Usa **captura de pantalla** cuando:
-
-- El servidor devuelve `X-Frame-Options: DENY` o `SAMEORIGIN`, o una política CSP que bloquea `frame-ancestors`.
-- La app requiere inicio de sesión (el iframe mostraría el login de Google en lugar de la app).
-- El proyecto es privado y no quieres que la URL aparezca en el código fuente.
-- La página tarda en cargar y quieres mejor rendimiento.
-
-Usa **iframe** cuando la página es pública y no bloquea ser incrustada.
+| Intervalo del carrusel | `js/app.js` — variable `AUTO_DELAY` (en milisegundos) |
 
 ---
 

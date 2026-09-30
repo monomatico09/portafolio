@@ -93,6 +93,8 @@ La captura se muestra en el slide del carrusel y se puede ver a pantalla complet
 
 **Tamaño recomendado:** `1280 × 800 px` (proporción 16:10, igual al contenedor).
 
+**Formato y nombre:** usa **WebP** (pesa ~10–20× menos que PNG) y nombres en minúsculas sin espacios ni tildes (ej. `mi-app.webp`).
+
 1. Guarda la captura en `screenshots/` (ej. `screenshots/mi-app.png`).
 2. Pon la ruta en el campo `screenshot`:
 

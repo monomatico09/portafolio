@@ -60,7 +60,7 @@
       img.src = project.screenshot;
       media.appendChild(img);
 
-    } else if (project.url) {
+    } else if (project.url && !project.private) {
       var wrapper = document.createElement('div');
       wrapper.className = 'slide-iframe-wrapper';
 
@@ -225,10 +225,12 @@
     wrap.addEventListener('mouseenter', stopAuto);
     wrap.addEventListener('mouseleave', startAuto);
 
-    /* Teclas (solo si el lightbox está cerrado) */
+    /* Teclas (solo si el lightbox está cerrado y no se está escribiendo) */
     document.addEventListener('keydown', function (e) {
       var lb = document.getElementById('lightbox');
       if (lb && !lb.hidden) return;
+      var t = e.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
       if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
       if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
     });

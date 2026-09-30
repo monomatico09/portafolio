@@ -8,7 +8,7 @@
  *   url         {string}   URL pública. Déjalo "" si el proyecto es privado.
  *   service     {string}   "Google Apps Script" | "Vercel" | "Netlify" | "GitHub Pages" | otro.
  *   screenshot  {string}   Ruta a imagen en /screenshots/, o "" para usar iframe.
- *   private     {boolean}  true = oculta el botón "Abrir" y muestra candado en la preview.
+ *   private     {boolean}  true = oculta el botón "Abrir" y nunca carga la URL en iframe.
  */
 window.PROJECTS = [
   {
@@ -26,7 +26,7 @@ window.PROJECTS = [
     problem:     "Elimina tareas repetitivas del día a día integrando tus herramientas favoritas sin necesidad de código complejo — ahorrando tiempo y reduciendo errores humanos.",
     url:         "",
     service:     "n8n + Python",
-    screenshot:  "screenshots/Automatización.png",
+    screenshot:  "screenshots/automatizacion.webp",
     private:     true
   },
   {
@@ -35,7 +35,7 @@ window.PROJECTS = [
     problem:     "Permite llevar un registro ordenado de las finanzas personales sin depender de apps de terceros, manteniendo los datos en Google Sheets bajo el control del usuario.",
     url:         "https://script.google.com/macros/s/AKfycbzfR1J1bLWPfAMPr5r5g8UdpO6sIIlmJznMy6Rl7SVhDNUegc3ne11S2KTT5GTR4uaZ/exec",
     service:     "Google Apps Script",
-    screenshot:  "screenshots/App Finanzas.png",
+    screenshot:  "screenshots/app-finanzas.webp",
     private:     true
   }
 ];

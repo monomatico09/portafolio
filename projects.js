@@ -17,7 +17,7 @@ window.PROJECTS = [
     problem:     "Elimina el seguimiento manual en hojas de cálculo, reduce errores en nómina y da visibilidad en tiempo real sobre el ausentismo de toda la organización.",
     url:         "",
     service:     "Google Apps Script",
-    screenshot:  "",
+    screenshot:  "screenshots/control-ausencias.webp",
     private:     true
   },
   {

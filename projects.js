@@ -21,6 +21,16 @@ window.PROJECTS = [
     private:     true
   },
   {
+  {
+    title:       "Automatizaciones con n8n y Python",
+    description: "Flujos de automatización personalizados que conectan Gmail, Google Sheets, APIs y bases de datos, con procesamiento inteligente de datos usando Python.",
+    problem:     "Elimina tareas repetitivas del día a día integrando tus herramientas favoritas sin necesidad de código complejo — ahorrando tiempo y reduciendo errores humanos.",
+    url:         "",
+    service:     "n8n + Python",
+    screenshot:  "screenshots/Automatización.png",
+    private:     true
+  },
+  {
     title:       "Control financiero personal",
     description: "App web para registrar y consultar movimientos de ingresos y gastos desde el celular, con categorías, saldo en tiempo real y resumen mensual.",
     problem:     "Permite llevar un registro ordenado de las finanzas personales sin depender de apps de terceros, manteniendo los datos en Google Sheets bajo el control del usuario.",

@@ -1,11 +1,11 @@
 (function () {
   'use strict';
 
-  var IFRAME_W = 1280;
-  var IFRAME_H = 800;
+  var IFRAME_W    = 1280;
+  var IFRAME_H    = 800;
   var LOAD_TIMEOUT = 10000;
+  var AUTO_DELAY  = 5000; /* ms entre slides */
 
-  /* ── Mapas de servicio ─────────────────────────────── */
   var BADGE_MAP = {
     'google apps script': 'badge--apps-script',
     'apps script':        'badge--apps-script',
@@ -13,65 +13,59 @@
     'netlify':            'badge--netlify',
     'github pages':       'badge--github-pages',
   };
-  var SLUG_MAP = {
-    'google apps script': 'apps-script',
-    'apps script':        'apps-script',
-    'vercel':             'vercel',
-    'netlify':            'netlify',
-    'github pages':       'github-pages',
-  };
 
   function badgeClass(s) { return BADGE_MAP[(s||'').toLowerCase().trim()] || 'badge--other'; }
-  function serviceSlug(s){ return SLUG_MAP[(s||'').toLowerCase().trim()]  || 'other'; }
+
+  /* ── Helper skeleton ── */
+  function makeSkeleton() {
+    var sk = document.createElement('div');
+    sk.className = 'card-skeleton';
+    return sk;
+  }
+
+  /* ── Helper no-disponible ── */
+  function showUnavailable(el) {
+    var d = document.createElement('div');
+    d.className = 'preview-unavailable';
+    d.textContent = 'Vista previa no disponible';
+    el.appendChild(d);
+  }
 
   /* ══════════════════════════════════════════════════════
-     CONSTRUCCIÓN DE TARJETA
+     CONSTRUCCIÓN DE SLIDE
      ══════════════════════════════════════════════════════ */
-  function buildCard(project) {
-    var isPrivate = !!project.private;
+  function buildSlide(project) {
+    var slide = document.createElement('div');
+    slide.className = 'carousel-slide';
 
-    var card = document.createElement('article');
-    card.className = 'project-card';
-    card.setAttribute('role', 'listitem');
-    if (project.service) card.setAttribute('data-service', serviceSlug(project.service));
+    /* ── Área de media (izquierda) ── */
+    var media = document.createElement('div');
+    media.className = 'slide-media';
 
-    /* ── Área de preview ── */
-    var preview = document.createElement('div');
-    preview.className = 'card-preview';
-
-    var skeleton = document.createElement('div');
-    skeleton.className = 'card-skeleton';
-    preview.appendChild(skeleton);
-
-    function hideSkeleton() { skeleton.classList.add('is-hidden'); }
+    var sk = makeSkeleton();
+    media.appendChild(sk);
+    function hideSk() { sk.classList.add('is-hidden'); }
 
     if (project.screenshot) {
-      /* Imagen estática — abre lightbox al hacer clic */
-      preview.classList.add('card-preview--clickable');
-      preview.addEventListener('click', function () {
+      media.classList.add('slide-media--clickable');
+      media.addEventListener('click', function () {
         openLightbox(project.screenshot, project.title || '');
       });
       var img = document.createElement('img');
-      img.className = 'card-screenshot';
-      img.alt = 'Captura de ' + (project.title || 'proyecto');
+      img.className = 'slide-screenshot';
+      img.alt = project.title || 'Vista previa';
       img.loading = 'lazy';
-      img.onload = hideSkeleton;
-      img.onerror = function () {
-        img.remove();
-        hideSkeleton();
-        showUnavailable(preview);
-      };
+      img.onload  = hideSk;
+      img.onerror = function () { img.remove(); hideSk(); showUnavailable(media); };
       img.src = project.screenshot;
-      preview.appendChild(img);
+      media.appendChild(img);
 
     } else if (project.url) {
-      /* iframe escalado — privado o público, la vista previa es igual.
-         pointer-events:none impide cualquier interacción con el iframe. */
       var wrapper = document.createElement('div');
-      wrapper.className = 'card-iframe-wrapper';
+      wrapper.className = 'slide-iframe-wrapper';
 
       var iframe = document.createElement('iframe');
-      iframe.className = 'card-iframe';
+      iframe.className = 'slide-iframe';
       iframe.src = project.url;
       iframe.setAttribute('loading', 'lazy');
       iframe.setAttribute('tabindex', '-1');
@@ -84,107 +78,176 @@
 
       var loaded = false;
       var timer = setTimeout(function () {
-        if (!loaded) {
-          hideSkeleton();
-          wrapper.style.display = 'none';
-          showUnavailable(preview);
-        }
+        if (!loaded) { hideSk(); wrapper.style.display = 'none'; showUnavailable(media); }
       }, LOAD_TIMEOUT);
 
-      iframe.onload = function () {
-        loaded = true;
-        clearTimeout(timer);
-        hideSkeleton();
-      };
+      iframe.onload = function () { loaded = true; clearTimeout(timer); hideSk(); };
 
       if (typeof ResizeObserver !== 'undefined') {
         var ro = new ResizeObserver(function (entries) {
           var w = entries[0].contentRect.width;
-          var scale = w / IFRAME_W;
-          iframe.style.transform = 'scale(' + scale + ')';
-          preview.style.height = (IFRAME_H * scale) + 'px';
-          preview.style.aspectRatio = 'unset';
+          iframe.style.transform = 'scale(' + (w / IFRAME_W) + ')';
         });
-        ro.observe(preview);
+        ro.observe(media);
       }
 
       wrapper.appendChild(iframe);
-      preview.appendChild(wrapper);
-
+      media.appendChild(wrapper);
     } else {
-      hideSkeleton();
-      showUnavailable(preview);
+      hideSk();
+      showUnavailable(media);
     }
 
-    card.appendChild(preview);
-
-    /* ── Cuerpo de la tarjeta ── */
-    var body = document.createElement('div');
-    body.className = 'card-body';
-
-    var titleEl = document.createElement('h3');
-    titleEl.className = 'card-title';
-    titleEl.textContent = project.title || 'Sin título';
-    body.appendChild(titleEl);
-
-    if (project.description) {
-      var descEl = document.createElement('p');
-      descEl.className = 'card-description';
-      descEl.textContent = project.description;
-      body.appendChild(descEl);
-    }
-
-    if (project.problem) {
-      var problemBox = document.createElement('div');
-      problemBox.className = 'card-problem';
-      var problemLabel = document.createElement('p');
-      problemLabel.className = 'card-problem-label';
-      problemLabel.textContent = 'Qué soluciona';
-      var problemText = document.createElement('p');
-      problemText.className = 'card-problem-text';
-      problemText.textContent = project.problem;
-      problemBox.appendChild(problemLabel);
-      problemBox.appendChild(problemText);
-      body.appendChild(problemBox);
-    }
-
-    var footer = document.createElement('div');
-    footer.className = 'card-footer';
+    /* ── Panel de información (derecha) ── */
+    var info = document.createElement('div');
+    info.className = 'slide-info';
 
     if (project.service) {
       var badge = document.createElement('span');
       badge.className = 'badge ' + badgeClass(project.service);
       badge.textContent = project.service;
-      footer.appendChild(badge);
+      info.appendChild(badge);
     }
 
-    /* Botón "Abrir" solo en proyectos públicos */
-    if (project.url && !isPrivate) {
+    var title = document.createElement('h3');
+    title.className = 'slide-title';
+    title.textContent = project.title || 'Sin título';
+    info.appendChild(title);
+
+    if (project.description) {
+      var desc = document.createElement('p');
+      desc.className = 'slide-description';
+      desc.textContent = project.description;
+      info.appendChild(desc);
+    }
+
+    if (project.problem) {
+      var prob = document.createElement('div');
+      prob.className = 'card-problem';
+      var probLbl = document.createElement('p');
+      probLbl.className = 'card-problem-label';
+      probLbl.textContent = 'Qué soluciona';
+      var probTxt = document.createElement('p');
+      probTxt.className = 'card-problem-text';
+      probTxt.textContent = project.problem;
+      prob.appendChild(probLbl);
+      prob.appendChild(probTxt);
+      info.appendChild(prob);
+    }
+
+    if (project.url && !project.private) {
       var btn = document.createElement('a');
       btn.className = 'btn-open';
-      btn.href = project.url;
-      btn.target = '_blank';
-      btn.rel = 'noopener noreferrer';
-      btn.textContent = 'Abrir';
-      var arrow = document.createElement('span');
-      arrow.setAttribute('aria-hidden', 'true');
-      arrow.textContent = '↗';
-      btn.appendChild(arrow);
-      footer.appendChild(btn);
+      btn.href      = project.url;
+      btn.target    = '_blank';
+      btn.rel       = 'noopener noreferrer';
+      btn.innerHTML = 'Abrir <span aria-hidden="true">↗</span>';
+      info.appendChild(btn);
     }
 
-    body.appendChild(footer);
-    card.appendChild(body);
-
-    return card;
+    slide.appendChild(media);
+    slide.appendChild(info);
+    return slide;
   }
 
-  /* ── Helper: muestra el mensaje de no disponible ── */
-  function showUnavailable(preview) {
-    var el = document.createElement('div');
-    el.className = 'preview-unavailable';
-    el.textContent = 'Vista previa no disponible';
-    preview.appendChild(el);
+  /* ══════════════════════════════════════════════════════
+     CARRUSEL
+     ══════════════════════════════════════════════════════ */
+  function initCarousel(projects) {
+    var wrap     = document.getElementById('carousel-wrap');
+    var track    = document.getElementById('carousel-track');
+    var dotsEl   = document.getElementById('carousel-dots');
+    var prevBtn  = document.getElementById('carousel-prev');
+    var nextBtn  = document.getElementById('carousel-next');
+    var progBar  = document.getElementById('carousel-progress-bar');
+
+    var total   = projects.length;
+    var current = 0;
+    var timer   = null;
+    var progTmr = null;
+
+    /* Construir slides */
+    var frag = document.createDocumentFragment();
+    for (var i = 0; i < total; i++) frag.appendChild(buildSlide(projects[i]));
+    track.appendChild(frag);
+
+    /* Dots */
+    var dots = [];
+    if (total > 1 && dotsEl) {
+      for (var j = 0; j < total; j++) {
+        var dot = document.createElement('button');
+        dot.className = 'carousel-dot';
+        dot.setAttribute('aria-label', 'Ir al proyecto ' + (j + 1));
+        (function (idx) { dot.addEventListener('click', function () { stopAuto(); goTo(idx); startAuto(); }); })(j);
+        dots.push(dot);
+        dotsEl.appendChild(dot);
+      }
+      prevBtn.hidden = false;
+      nextBtn.hidden = false;
+    }
+
+    function goTo(idx) {
+      current = ((idx % total) + total) % total;
+      track.style.transform = 'translateX(-' + current * 100 + '%)';
+      dots.forEach(function (d, i) { d.classList.toggle('is-active', i === current); });
+      resetProgress();
+    }
+
+    function resetProgress() {
+      if (!progBar) return;
+      if (progTmr) clearTimeout(progTmr);
+      progBar.style.transition = 'none';
+      progBar.style.width = '0%';
+      /* micro-task para que el navegador aplique el reset antes de animar */
+      progTmr = setTimeout(function () {
+        progBar.style.transition = 'width ' + AUTO_DELAY + 'ms linear';
+        progBar.style.width = '100%';
+      }, 30);
+    }
+
+    function startAuto() {
+      if (total <= 1) return;
+      stopAuto();
+      timer = setInterval(function () { goTo(current + 1); }, AUTO_DELAY);
+      resetProgress();
+    }
+
+    function stopAuto() {
+      if (timer)   { clearInterval(timer);  timer   = null; }
+      if (progTmr) { clearTimeout(progTmr); progTmr = null; }
+      if (progBar) { progBar.style.transition = 'none'; progBar.style.width = '0%'; }
+    }
+
+    prevBtn.addEventListener('click', function () { stopAuto(); goTo(current - 1); startAuto(); });
+    nextBtn.addEventListener('click', function () { stopAuto(); goTo(current + 1); startAuto(); });
+
+    /* Pausar al hover */
+    wrap.addEventListener('mouseenter', stopAuto);
+    wrap.addEventListener('mouseleave', startAuto);
+
+    /* Teclas (solo si el lightbox está cerrado) */
+    document.addEventListener('keydown', function (e) {
+      var lb = document.getElementById('lightbox');
+      if (lb && !lb.hidden) return;
+      if (e.key === 'ArrowLeft')  { stopAuto(); goTo(current - 1); startAuto(); }
+      if (e.key === 'ArrowRight') { stopAuto(); goTo(current + 1); startAuto(); }
+    });
+
+    /* Touch swipe */
+    var touchX = null;
+    wrap.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+    wrap.addEventListener('touchend', function (e) {
+      if (touchX === null) return;
+      var dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 40) return;
+      stopAuto();
+      goTo(dx < 0 ? current + 1 : current - 1);
+      startAuto();
+    }, { passive: true });
+
+    goTo(0);
+    startAuto();
   }
 
   /* ══════════════════════════════════════════════════════
@@ -194,21 +257,17 @@
     var yearEl = document.getElementById('footer-year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-    var grid       = document.getElementById('projects-grid');
-    var emptyState = document.getElementById('empty-state');
     var projects   = window.PROJECTS;
+    var emptyState = document.getElementById('empty-state');
+    var wrap       = document.getElementById('carousel-wrap');
 
     if (!Array.isArray(projects) || projects.length === 0) {
-      if (grid)       grid.hidden = true;
+      if (wrap) wrap.hidden = true;
       if (emptyState) emptyState.hidden = false;
       return;
     }
 
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < projects.length; i++) {
-      frag.appendChild(buildCard(projects[i]));
-    }
-    if (grid) grid.appendChild(frag);
+    initCarousel(projects);
   }
 
   if (document.readyState === 'loading') {

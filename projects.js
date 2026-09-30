@@ -17,7 +17,7 @@ window.PROJECTS = [
     problem:     "Elimina el seguimiento manual en hojas de cálculo, reduce errores en nómina y da visibilidad en tiempo real sobre el ausentismo de toda la organización.",
     url:         "",
     service:     "Google Apps Script",
-    screenshot:  "",
+    screenshot:  "screenshots/App.jpeg",
     private:     true
   },
   {
@@ -26,7 +26,7 @@ window.PROJECTS = [
     problem:     "Permite llevar un registro ordenado de las finanzas personales sin depender de apps de terceros, manteniendo los datos en Google Sheets bajo el control del usuario.",
     url:         "https://script.google.com/macros/s/AKfycbzfR1J1bLWPfAMPr5r5g8UdpO6sIIlmJznMy6Rl7SVhDNUegc3ne11S2KTT5GTR4uaZ/exec",
     service:     "Google Apps Script",
-    screenshot:  "",
-    private:     false
+    screenshot:  "screenshots/App 1.jpeg",
+    private:     true
   }
 ];

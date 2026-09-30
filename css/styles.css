@@ -580,10 +580,12 @@ strong { font-weight: 600; color: var(--tx-1); }
   display: block;
   z-index: 1;
   transform-origin: top center;
-  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .project-card:hover .card-screenshot { transform: scale(1.06); }
+  .project-card:hover .card-screenshot { transform: scale(1.5); }
 }
 
 /* ── Cuerpo ── */

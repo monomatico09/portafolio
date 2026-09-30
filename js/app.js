@@ -46,7 +46,11 @@
     function hideSkeleton() { skeleton.classList.add('is-hidden'); }
 
     if (project.screenshot) {
-      /* Imagen estática — zoom vía CSS al hacer hover */
+      /* Imagen estática — abre lightbox al hacer clic */
+      preview.classList.add('card-preview--clickable');
+      preview.addEventListener('click', function () {
+        openLightbox(project.screenshot, project.title || '');
+      });
       var img = document.createElement('img');
       img.className = 'card-screenshot';
       img.alt = 'Captura de ' + (project.title || 'proyecto');
@@ -213,6 +217,69 @@
     init();
   }
 
+})();
+
+/* ══════════════════════════════════════════════════════════
+   LIGHTBOX
+   ══════════════════════════════════════════════════════════ */
+var openLightbox = (function () {
+  'use strict';
+
+  /* Recopila todos los proyectos con captura, en orden */
+  function getSlides() {
+    return (window.PROJECTS || []).filter(function (p) { return !!p.screenshot; });
+  }
+
+  var lb       = document.getElementById('lightbox');
+  var backdrop = document.getElementById('lightbox-backdrop');
+  var closeBtn = document.getElementById('lightbox-close');
+  var prevBtn  = document.getElementById('lightbox-prev');
+  var nextBtn  = document.getElementById('lightbox-next');
+  var img      = document.getElementById('lightbox-img');
+  var caption  = document.getElementById('lightbox-caption');
+
+  var slides  = [];
+  var current = 0;
+
+  function show(index) {
+    slides = getSlides();
+    current = Math.max(0, Math.min(index, slides.length - 1));
+    var slide = slides[current];
+    img.src = slide.screenshot;
+    img.alt = slide.title || '';
+    caption.textContent = slide.title || '';
+    prevBtn.hidden = current === 0;
+    nextBtn.hidden = current === slides.length - 1;
+  }
+
+  function open(screenshot, title) {
+    slides = getSlides();
+    var idx = slides.findIndex(function (p) { return p.screenshot === screenshot; });
+    lb.hidden = false;
+    document.body.style.overflow = 'hidden';
+    show(idx >= 0 ? idx : 0);
+  }
+
+  function close() {
+    lb.hidden = true;
+    document.body.style.overflow = '';
+    img.src = '';
+  }
+
+  if (lb) {
+    backdrop.addEventListener('click', close);
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', function () { show(current - 1); });
+    nextBtn.addEventListener('click', function () { show(current + 1); });
+    document.addEventListener('keydown', function (e) {
+      if (lb.hidden) return;
+      if (e.key === 'Escape')     close();
+      if (e.key === 'ArrowLeft')  show(current - 1);
+      if (e.key === 'ArrowRight') show(current + 1);
+    });
+  }
+
+  return open;
 })();
 
 /* ══════════════════════════════════════════════════════════

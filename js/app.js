@@ -47,7 +47,6 @@
 
     if (project.screenshot) {
       /* Imagen estática — zoom vía CSS al hacer hover */
-      preview.classList.add('card-preview--screenshot');
       var img = document.createElement('img');
       img.className = 'card-screenshot';
       img.alt = 'Captura de ' + (project.title || 'proyecto');

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Johan Alexander Tirado — Portafolio</title>
+  <meta name="description" content="Aplicaciones web para educación y procesos internos" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <span class="site-eyebrow">Portafolio</span>
+      <h1 class="site-title">Johan Alexander Tirado</h1>
+      <p class="site-tagline">Aplicaciones web para educación y procesos internos</p>
+      <div class="header-divider" aria-hidden="true"></div>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      <div id="projects-grid" class="projects-grid" role="list" aria-label="Proyectos"></div>
+      <div id="empty-state" class="empty-state" hidden>
+        <div class="empty-icon" aria-hidden="true">📂</div>
+        <p class="empty-title">Aún no hay proyectos.</p>
+        <p class="empty-body">Agrega tu primer proyecto editando <code>projects.js</code>.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p class="footer-copy">&copy; <span id="footer-year"></span> Johan Alexander Tirado</p>
+    </div>
+  </footer>
+
+  <script src="projects.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

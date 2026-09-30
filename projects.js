@@ -21,7 +21,6 @@ window.PROJECTS = [
     private:     true
   },
   {
-  {
     title:       "Automatizaciones con n8n y Python",
     description: "Flujos de automatización personalizados que conectan Gmail, Google Sheets, APIs y bases de datos, con procesamiento inteligente de datos usando Python.",
     problem:     "Elimina tareas repetitivas del día a día integrando tus herramientas favoritas sin necesidad de código complejo — ahorrando tiempo y reduciendo errores humanos.",

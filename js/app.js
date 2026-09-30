@@ -320,3 +320,125 @@
   }
 
 })();
+
+/* ══════════════════════════════════════════════════════════
+   CHAT WIDGET
+   ══════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  var FORMSPREE = 'https://formspree.io/f/mqpajeea';
+
+  var trigger  = document.getElementById('chat-trigger');
+  var panel    = document.getElementById('chat-panel');
+  var closeBtn = document.getElementById('chat-panel-close');
+  var form     = document.getElementById('chat-form');
+  var sendBtn  = document.getElementById('chat-send');
+  var errorEl  = document.getElementById('chat-error');
+  var successEl= document.getElementById('chat-success');
+
+  if (!trigger || !panel) return;
+
+  var isOpen = false;
+
+  /* ── Abrir / cerrar ── */
+  function openPanel() {
+    isOpen = true;
+    panel.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    /* Enfocar primer input */
+    var first = panel.querySelector('.chat-input');
+    if (first) setTimeout(function () { first.focus(); }, 50);
+  }
+
+  function closePanel() {
+    isOpen = false;
+    panel.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
+
+  trigger.addEventListener('click', function () {
+    isOpen ? closePanel() : openPanel();
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+  /* Cerrar con Escape */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen) closePanel();
+  });
+
+  /* ── Envío del formulario ── */
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      /* Validación básica */
+      var name    = form.querySelector('[name="name"]');
+      var email   = form.querySelector('[name="email"]');
+      var message = form.querySelector('[name="message"]');
+
+      if (!name.value.trim() || !email.value.trim() || !message.value.trim()) {
+        showError('Por favor completa todos los campos.');
+        return;
+      }
+      if (!isValidEmail(email.value.trim())) {
+        showError('Ingresa un correo válido.');
+        return;
+      }
+
+      hideError();
+      setSending(true);
+
+      var data = new FormData(form);
+
+      fetch(FORMSPREE, {
+        method:  'POST',
+        body:    data,
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function (res) {
+        if (res.ok) {
+          showSuccess();
+        } else {
+          return res.json().then(function (body) {
+            throw new Error(body.error || 'Error del servidor');
+          });
+        }
+      })
+      .catch(function () {
+        setSending(false);
+        showError('Ocurrió un error. Intenta de nuevo.');
+      });
+    });
+  }
+
+  /* ── Helpers ── */
+  function setSending(sending) {
+    if (!sendBtn) return;
+    sendBtn.disabled = sending;
+    var label = sendBtn.querySelector('.chat-send-label');
+    if (label) label.textContent = sending ? 'Enviando…' : 'Enviar mensaje';
+  }
+
+  function showError(msg) {
+    if (!errorEl) return;
+    errorEl.textContent = msg;
+    errorEl.hidden = false;
+  }
+
+  function hideError() {
+    if (errorEl) errorEl.hidden = true;
+  }
+
+  function showSuccess() {
+    if (form)      form.hidden      = true;
+    if (successEl) successEl.hidden = false;
+  }
+
+  function isValidEmail(val) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+  }
+
+})();

@@ -12,9 +12,9 @@
  */
 window.PROJECTS = [
   {
-    title:       "Mi primer proyecto",
-    description: "Sistema de gestión construido con Google Apps Script para uso interno en una institución educativa.",
-    problem:     "Elimina el ingreso manual de datos en hojas de cálculo y centraliza la información en tiempo real para todo el equipo.",
+    title:       "Sistema de control de ausencias",
+    description: "Plataforma web que centraliza el monitoreo de ausencias, permisos e incapacidades del personal, con generación automática de informes para nómina y KPIs de gestión del ausentismo.",
+    problem:     "Elimina el seguimiento manual en hojas de cálculo, reduce errores en nómina y da visibilidad en tiempo real sobre el ausentismo de toda la organización.",
     url:         "",
     service:     "Google Apps Script",
     screenshot:  "",

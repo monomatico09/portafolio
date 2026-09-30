@@ -118,6 +118,68 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════
+       CHAT WIDGET
+       ══════════════════════════════ -->
+  <div class="chat-widget" id="chat-widget">
+
+    <!-- Panel -->
+    <div class="chat-panel" id="chat-panel" hidden aria-live="polite">
+      <div class="chat-panel-header">
+        <div class="chat-avatar" aria-hidden="true">JT</div>
+        <div class="chat-header-info">
+          <p class="chat-header-name">Johan Tirado</p>
+          <p class="chat-header-status">
+            <span class="chat-status-dot" aria-hidden="true"></span>
+            Respondo en menos de 24 h
+          </p>
+        </div>
+        <button class="chat-panel-close" id="chat-panel-close" aria-label="Cerrar chat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="chat-panel-body">
+        <!-- Burbuja de saludo -->
+        <div class="chat-bubble">
+          ¡Hola! 👋 ¿En qué puedo ayudarte?<br>
+          Cuéntame qué proceso quieres automatizar o qué herramienta necesitas.
+        </div>
+
+        <!-- Formulario -->
+        <form class="chat-form" id="chat-form" novalidate>
+          <input  class="chat-input" type="text"  name="name"    placeholder="Tu nombre"   required autocomplete="name" />
+          <input  class="chat-input" type="email" name="email"   placeholder="Tu correo"   required autocomplete="email" />
+          <textarea class="chat-input chat-textarea" name="message" placeholder="Escribe tu mensaje…" rows="3" required></textarea>
+          <!-- Campo oculto para el asunto del correo -->
+          <input type="hidden" name="_subject" value="Nuevo mensaje desde el portafolio" />
+          <button class="chat-send" type="submit" id="chat-send">
+            <span class="chat-send-label">Enviar mensaje</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+          <p class="chat-error" id="chat-error" hidden>Ocurrió un error. Intenta de nuevo.</p>
+        </form>
+
+        <!-- Estado de éxito -->
+        <div class="chat-success" id="chat-success" hidden>
+          <div class="chat-success-icon" aria-hidden="true">✓</div>
+          <p class="chat-success-title">¡Mensaje enviado!</p>
+          <p class="chat-success-body">Te respondo pronto por correo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón flotante -->
+    <button class="chat-trigger" id="chat-trigger" aria-label="Abrir chat de contacto" aria-expanded="false" aria-controls="chat-panel">
+      <span class="chat-trigger-dot" aria-hidden="true"></span>
+      <!-- Ícono chat (visible cuando cerrado) -->
+      <svg class="chat-icon-open" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+      <!-- Ícono cerrar (visible cuando abierto) -->
+      <svg class="chat-icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+  </div>
+
   <script src="projects.js"></script>
   <script src="js/app.js"></script>
 </body>
